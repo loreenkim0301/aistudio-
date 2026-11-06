@@ -1,0 +1,8 @@
+{
+  "name": "셀렉트웨이 이벤트 신청",
+  "description": "AI 협업 실무 밋업 이벤트 참가 신청 및 관리 페이지",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

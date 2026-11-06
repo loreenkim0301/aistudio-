@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == "loreen@selectway.co.kr" && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidApplication(data) {
+      return data.keys().hasAll(['name', 'email', 'phone', 'agreed', 'createdAt']) &&
+        data.keys().hasOnly(['name', 'org', 'email', 'phone', 'memo', 'agreed', 'createdAt']) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 50 &&
+        (!('org' in data) || (data.org is string && data.org.size() <= 100)) &&
+        data.email is string && data.email.size() >= 5 && data.email.size() <= 100 &&
+        data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 30 &&
+        (!('memo' in data) || (data.memo is string && data.memo.size() <= 500)) &&
+        data.agreed == true &&
+        data.createdAt is string && data.createdAt.size() <= 50;
+    }
+
+    match /applications/{applicationId} {
+      allow create: if isValidId(applicationId) && isValidApplication(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

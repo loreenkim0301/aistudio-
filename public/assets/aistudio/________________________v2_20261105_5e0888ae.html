@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>셀렉트웨이 이벤트 신청</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 한 장의 입장권(이벤트 정보 + 절취선 + 신청서) 아래에 이 브라우저에 저장된 신청자 명단 */
+:root{
+  --bg:#EEF1F6; --paper:#FFFFFF; --ink:#14213D; --muted:#5B6478; --line:#D5DBE6;
+  --accent:#2F5BEA; --accent-ink:#FFFFFF; --ok:#0F7B4E; --ok-bg:#E3F4EC; --warn:#A4441B; --warn-bg:#FBEDE6;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1424; --paper:#172036; --ink:#E8ECF5; --muted:#9AA4BA; --line:#2C3752;
+  --accent:#7C9BFF; --accent-ink:#0E1424; --ok:#5FD39C; --ok-bg:#163327; --warn:#F2A07C; --warn-bg:#3A2219; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1424; --paper:#172036; --ink:#E8ECF5; --muted:#9AA4BA; --line:#2C3752;
+  --accent:#7C9BFF; --accent-ink:#0E1424; --ok:#5FD39C; --ok-bg:#163327; --warn:#F2A07C; --warn-bg:#3A2219; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 48px}
+main{max-width:640px;margin:0 auto;display:grid;gap:24px}
+h1,h2{text-wrap:balance;margin:0;line-height:1.3}
+h1{font-size:1.75rem;font-weight:700}
+h2{font-size:1.125rem;font-weight:700}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.ticket{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ticket-head{padding:24px;display:grid;gap:12px}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:0}
+.meta dt{font-size:.8125rem;color:var(--muted)}
+.meta dd{margin:0;font-weight:500;min-width:0}
+.desc{margin:0;white-space:pre-wrap}
+.perf{position:relative;height:0;border-top:2px dashed var(--line);margin:0 18px}
+.perf::before,.perf::after{content:"";position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.perf::before{left:-30px}.perf::after{right:-30px}
+.ticket-body{padding:24px;display:grid;gap:16px}
+form{display:grid;gap:14px}
+.field{display:grid;gap:6px}
+label{font-size:.875rem;font-weight:500}
+.req{color:var(--accent)}
+input,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+textarea{min-height:88px;resize:vertical}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:480px){.row2{grid-template-columns:1fr}}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:.875rem;background:var(--bg);border-radius:8px;padding:12px}
+.consent input{width:auto;margin-top:4px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-weight:500;border-radius:8px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.danger{color:var(--warn)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.note{border-radius:8px;padding:12px 14px;font-size:.875rem}
+.note.ok{background:var(--ok-bg);color:var(--ok)}
+.note.warn{background:var(--warn-bg);color:var(--warn)}
+.note.info{background:var(--bg);color:var(--muted)}
+.tag{display:inline-block;font-size:.7rem;font-family:var(--f-mono);padding:2px 8px;border-radius:999px;background:var(--bg);color:var(--muted)}
+.list{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:24px;display:grid;gap:14px}
+.list-top{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:baseline}
+.count{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.875rem;min-width:600px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;color:var(--muted);font-weight:500;letter-spacing:.04em}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+#copy-fallback{min-height:120px;font-family:var(--f-mono);font-size:.8rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<main>
+  <article class="ticket" aria-labelledby="ev-title">
+    <header class="ticket-head">
+      <span class="eyebrow">Event · 참가 신청</span>
+      <h1 id="ev-title">AI 협업 실무 밋업</h1>
+      <dl class="meta">
+        <dt>일시</dt><dd>2026-11-20 (금) 19:00–21:00 KST</dd>
+        <dt>장소</dt><dd>서울 (상세 장소는 신청자에게 개별 안내)</dd>
+        <dt>정원</dt><dd>30명</dd>
+        <dt>신청 마감</dt><dd>2026-11-18 (수) 23:59 KST</dd>
+      </dl>
+      <p class="desc muted">기획자·PM이 AI와 함께 일하는 방법을 사례 중심으로 나눕니다. 참가비 무료.</p>
+      <p class="tag">예시 정보 · 실제 행사 정보로 교체 예정</p>
+    </header>
+    <div class="perf" aria-hidden="true"></div>
+    <section class="ticket-body" aria-labelledby="form-title">
+      <h2 id="form-title">신청서</h2>
+      <p id="status" class="note info" role="status" hidden></p>
+      <form id="apply" novalidate>
+        <div class="row2">
+          <div class="field"><label for="f-name">이름 <span class="req">*</span></label><input id="f-name" autocomplete="name" required></div>
+          <div class="field"><label for="f-org">소속</label><input id="f-org" autocomplete="organization" placeholder="회사·학교 (선택)"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="f-email">이메일 <span class="req">*</span></label><input id="f-email" type="email" autocomplete="email" required></div>
+          <div class="field"><label for="f-phone">휴대폰 <span class="req">*</span></label><input id="f-phone" type="tel" autocomplete="tel" placeholder="010-0000-0000" required></div>
+        </div>
+        <div class="field"><label for="f-memo">하고 싶은 질문이나 요청</label><textarea id="f-memo" placeholder="선택 입력"></textarea></div>
+        <label class="consent" for="f-agree"><input id="f-agree" type="checkbox" required>
+          <span><strong>개인정보 수집·이용 동의 (필수)</strong><br><span class="muted">수집 항목: 이름, 이메일, 휴대폰, 소속 · 목적: 이벤트 참가 확인 및 안내 · 보유 기간: 이벤트 종료 후 3개월</span></span></label>
+        <p id="form-err" class="note warn" hidden></p>
+        <div class="btns"><button class="primary" id="btn-submit" type="submit">신청하기</button></div>
+      </form>
+    </section>
+  </article>
+
+  <section class="list" aria-labelledby="list-title">
+    <div class="list-top">
+      <h2 id="list-title">신청자 명단 <span class="tag">이 브라우저에만 저장</span></h2>
+      <span class="count" id="count">0명</span>
+    </div>
+    <p class="note info" id="storage-note">명단은 이 기기의 이 브라우저 안에만 임시로 저장됩니다. 다른 기기나 다른 브라우저에서는 보이지 않고, 브라우저 데이터를 지우면 함께 사라집니다.</p>
+    <div class="btns">
+      <button type="button" id="btn-copy">명단 복사 (시트 붙여넣기용)</button>
+      <button type="button" class="danger" id="btn-clear">전체 삭제</button>
+    </div>
+    <p id="list-msg" class="note info" hidden></p>
+    <textarea id="copy-fallback" readonly hidden aria-label="복사용 명단"></textarea>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>신청 시각 (KST)</th><th>이름</th><th>소속</th><th>이메일</th><th>휴대폰</th><th>질문·요청</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+const KEY='swy-event-applications-v1';
+const $=id=>document.getElementById(id);
+const fmtKST=iso=>{try{return new Date(iso).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})}catch{return iso||''}};
+let memoryOnly=false,list=[];
+
+function load(){
+  try{const raw=localStorage.getItem(KEY);const v=raw?JSON.parse(raw):[];return Array.isArray(v)?v:[]}
+  catch{memoryOnly=true;return list}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(list));memoryOnly=false}
+  catch{memoryOnly=true}
+  renderNote();
+}
+function renderNote(){
+  const n=$('storage-note');
+  if(memoryOnly){n.className='note warn';n.textContent='이 브라우저는 저장 공간 사용이 막혀 있습니다(시크릿 창 등). 지금 입력한 명단은 이 창을 닫거나 새로고침하면 사라집니다.'}
+}
+function setStatus(kind,text){const s=$('status');s.className='note '+kind;s.textContent=text;s.hidden=!text}
+
+function render(){
+  $('count').textContent=list.length+'명';
+  const tb=$('rows');tb.textContent='';
+  if(!list.length){const td=tb.insertRow().insertCell();td.colSpan=7;td.className='muted';td.textContent='아직 신청자가 없습니다. 위 신청서를 제출하면 여기에 쌓입니다.';return}
+  [...list].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).forEach(r=>{
+    const tr=tb.insertRow();
+    const c=(t,cls)=>{const td=tr.insertCell();td.textContent=t||'';if(cls)td.className=cls};
+    c(fmtKST(r.createdAt),'num');c(r.name);c(r.org);c(r.email);c(r.phone,'num');c(r.memo);
+    const td=tr.insertCell();const b=document.createElement('button');b.type='button';b.className='danger';b.textContent='삭제';
+    let armed=false;
+    b.onclick=()=>{if(!armed){armed=true;b.textContent='확인';setTimeout(()=>{armed=false;b.textContent='삭제'},4000);return}
+      list=list.filter(x=>x.id!==r.id);save();render()};
+    td.appendChild(b);
+  });
+}
+
+const phone=$('f-phone');
+phone.addEventListener('beforeinput',e=>{if(e.data&&/\s/.test(e.data)&&e.inputType==='insertText')e.preventDefault()});
+phone.addEventListener('input',()=>{const v=phone.value,c=v.replace(/\s+/g,'');if(v!==c){const p=Math.max(0,(phone.selectionStart||c.length)-(v.length-c.length));phone.value=c;try{phone.setSelectionRange(p,p)}catch{}}});
+
+const digits=s=>(s||'').replace(/\D/g,'');
+$('apply').addEventListener('submit',e=>{
+  e.preventDefault();const err=$('form-err');err.hidden=true;setStatus('','');
+  const v={name:$('f-name').value.trim(),org:$('f-org').value.trim(),email:$('f-email').value.trim(),phone:$('f-phone').value.trim(),memo:$('f-memo').value.trim()};
+  const miss=[];if(!v.name)miss.push('이름');if(!/^\S+@\S+\.\S+$/.test(v.email))miss.push('올바른 이메일');if(!/^[0-9\-+]{9,}$/.test(v.phone))miss.push('휴대폰 번호');
+  if(!$('f-agree').checked)miss.push('개인정보 수집·이용 동의');
+  if(miss.length){err.textContent=miss.join(', ')+'을(를) 확인해 주세요.';err.hidden=false;return}
+  if(list.some(x=>digits(x.phone)===digits(v.phone))){err.textContent='이미 같은 휴대폰 번호로 신청되어 있습니다. 아래 명단을 확인해 주세요.';err.hidden=false;return}
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  list.push({id,...v,agreed:true,createdAt:new Date().toISOString()});
+  save();render();
+  $('apply').reset();
+  setStatus('ok',`${v.name}님 신청이 접수되었습니다. 아래 명단에 추가되었습니다.`);
+});
+
+let clearArmed=false;
+$('btn-clear').addEventListener('click',()=>{
+  const b=$('btn-clear');if(!list.length)return;
+  if(!clearArmed){clearArmed=true;b.textContent=`한 번 더 누르면 ${list.length}명 모두 삭제`;setTimeout(()=>{clearArmed=false;b.textContent='전체 삭제'},4000);return}
+  clearArmed=false;b.textContent='전체 삭제';list=[];save();render();
+  const m=$('list-msg');m.textContent='명단을 모두 삭제했습니다.';m.hidden=false;
+});
+
+$('btn-copy').addEventListener('click',()=>{
+  const m=$('list-msg'),fb=$('copy-fallback');
+  if(!list.length){m.textContent='복사할 신청자가 없습니다.';m.hidden=false;return}
+  const head=['신청시각(KST)','이름','소속','이메일','휴대폰','질문·요청'];
+  const tsv=[head,...[...list].sort((a,b)=>a.createdAt.localeCompare(b.createdAt)).map(r=>[fmtKST(r.createdAt),r.name,r.org,r.email,r.phone,(r.memo||'').replace(/\s+/g,' ')])].map(a=>a.map(x=>x||'').join('\t')).join('\n');
+  const fallback=()=>{fb.value=tsv;fb.hidden=false;fb.select();m.textContent='자동 복사가 막혀 있습니다. 아래 칸이 선택되어 있으니 Ctrl/⌘+C로 복사하세요.';m.hidden=false};
+  try{navigator.clipboard.writeText(tsv).then(()=>{fb.hidden=true;m.textContent=list.length+'명 명단을 복사했습니다. 구글 시트에 붙여넣으세요.';m.hidden=false},fallback)}catch{fallback()}
+});
+
+window.addEventListener('storage',e=>{if(e.key===KEY){list=load();render()}});
+list=load();renderNote();render();
+</script>
+</body>
+</html>

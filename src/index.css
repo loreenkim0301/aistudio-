@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #EEF1F6;
+  --paper: #FFFFFF;
+  --ink: #14213D;
+  --muted: #5B6478;
+  --line: #D5DBE6;
+  --accent: #2F5BEA;
+  --accent-ink: #FFFFFF;
+  --ok: #0F7B4E;
+  --ok-bg: #E3F4EC;
+  --warn: #A4441B;
+  --warn-bg: #FBEDE6;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1424;
+    --paper: #172036;
+    --ink: #E8ECF5;
+    --muted: #9AA4BA;
+    --line: #2C3752;
+    --accent: #7C9BFF;
+    --accent-ink: #0E1424;
+    --ok: #5FD39C;
+    --ok-bg: #163327;
+    --warn: #F2A07C;
+    --warn-bg: #3A2219;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0E1424;
+  --paper: #172036;
+  --ink: #E8ECF5;
+  --muted: #9AA4BA;
+  --line: #2C3752;
+  --accent: #7C9BFF;
+  --accent-ink: #0E1424;
+  --ok: #5FD39C;
+  --ok-bg: #163327;
+  --warn: #F2A07C;
+  --warn-bg: #3A2219;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 48px;
+}
+
+.ticket {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.perf {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed var(--line);
+  margin: 0 18px;
+}
+
+.perf::before,
+.perf::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.perf::before {
+  left: -30px;
+}
+
+.perf::after {
+  right: -30px;
+}
+
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-family: var(--f-mono);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.note {
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.875rem;
+}
+
+.note.ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.note.warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.note.info {
+  background: var(--bg);
+  color: var(--muted);
+}

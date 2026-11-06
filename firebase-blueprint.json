@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "application": {
+      "title": "Application",
+      "description": "Event participant registration application",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "org": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "memo": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "agreed": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 50
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "phone",
+        "agreed",
+        "createdAt"
+      ]
+    },
+    "admin": {
+      "title": "Admin",
+      "description": "Registered organizer administrator",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "email"
+      ]
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Event and Google Sheets configuration",
+      "type": "object",
+      "properties": {
+        "spreadsheetId": {
+          "type": "string",
+          "maxLength": 150
+        },
+        "spreadsheetUrl": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "autoSync": {
+          "type": "boolean"
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 50
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/applications/{applicationId}": {
+      "schema": "application",
+      "description": "Event participant applications"
+    },
+    "/admins/{adminId}": {
+      "schema": "admin",
+      "description": "Organizer administrators"
+    },
+    "/settings/{settingId}": {
+      "schema": "settings",
+      "description": "Organizer settings such as Google Sheet linkage"
+    }
+  }
+}
